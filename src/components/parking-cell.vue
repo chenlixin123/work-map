@@ -1,6 +1,17 @@
+<style scoped>
+  .contain {
+    height: 100%;
+  }
+  #container {
+    overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10
+  }
+  *{
+    /* -webkit-overflow-scrolling: touch; */
+  }
+</style>
 <template>
-  <div style="height: 100%">
-    <div style="overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10" id="container"> </div>
+  <div class="contain">
+    <div id="container"> </div>
     <div v-if="isShowSheet" style="width: 100%; position: fixed; bottom: 0; height: 100px; z-index: 100;background-color: #FFFFFF">
       <div style="padding: 8px">
         <img style="width: 28px; height: 28px;" src="src/assets/dwei-f.png"/>
@@ -14,7 +25,7 @@
 <script>
 import { XHeader, Panel, XButton } from 'vux'
 import {getMapData, getLoad} from '@/lib/map-data'
-import {createStage, createLayer, createGroup, createBorder, createParking, createElement, createLoadLine} from '@/lib/konva-base'
+import {createStage, createLayer, createGroup, createBorder, createParking, createElement, createLoadLine, createStart} from '@/lib/konva-base'
 export default {
   components: {
     XHeader,
@@ -24,6 +35,7 @@ export default {
   name: 'ParkingCell',
   data () {
     return {
+      loadP: '89,434',
       dataMap: {},
       stage: null,
       layer: null,
@@ -43,7 +55,7 @@ export default {
         point: []
       },
       loadParams: {
-        mapId: 2,
+        mapId: 62,
         startValue: null,
         startPoint: [],
         endValue: null,
@@ -52,6 +64,10 @@ export default {
     }
   },
   methods: {
+    drawStart () {
+        
+    },
+    // 地图放大事件
     toBig () {
       let value = -(0 - this.isPer - 0.008)
       if (value > 0 && value <= 2.4) {
@@ -59,6 +75,7 @@ export default {
         this.isPer = value
       }
     },
+    // 地图缩小事件
     toSmall () {
       let value = this.isPer - 0.008
       if (value > 0 && value >= 0.4) {
@@ -66,6 +83,7 @@ export default {
         this.isPer = value
       }
     },
+    // 地图调用的放大或缩小事件（只需传参调用即可）
     scale (per) {
       this.isPer = per
       this.group.scale({x: per, y: per})
@@ -76,6 +94,7 @@ export default {
       var y = p2.pageY - p1.pageY
       return Math.sqrt(x * x + y * y)
     },
+    // 判断用户是放大或所缩小事件
     touchListen () {
       var _this = this
       document.addEventListener('touchstart', function (e) {
@@ -126,7 +145,8 @@ export default {
         }
       }
     },
-    initMap () {
+    initMap (selectedNo, direction) {
+      console.log('初始化11111111')
       this.stage = createStage('container')
       /**
        * 对画布添加放大缩小事件
@@ -134,12 +154,38 @@ export default {
       this.layer = createLayer(this.stage)
       this.group = createGroup(this.layer)
       this.loadGroup = createGroup(this.layer)
-      this.drawElement()
+      this.drawElement(selectedNo, direction)
+      /**
+       * 绘制路线
+       * */
+      console.log('开始绘制路线')
+      try {
+        getLoad(this.loadParams, res => {
+          if (res && res.code === 200) {
+            // let max_x = 0
+            // let min_y = res.data[0].y
+            // for( let i = 0; i < res.data.length; i++){
+            //     if(res.data[i].x > max_x){
+            //           max_x = res.data[i].x
+            //       }
+
+            //       if(res.data[i].y < min_y){
+            //           min_y = res.data[i].y
+            //       }
+            // }
+            var lines = res.data
+            this.group.add(createLoadLine(lines, this.isPer))
+            this.layer.draw()
+          }
+        })
+      } catch (e) {
+        console.log(e)
+      }
       /**
        * 根据当前模型按比例缩小地图
        * */
-      let width = this.stage.width() / (this.dataMap.width * this.dataMap.unit) + 0.4
-      let height = this.group.height() / (this.dataMap.height * this.dataMap.unit) + 0.4
+      let width = this.stage.width() / (this.dataMap.width * this.dataMap.unit) + (this.dataMap.width <= 80 ? 0.2 : this.dataMap.width <= 120 ? 0.1 : 0)
+      let height = this.group.height() / (this.dataMap.height * this.dataMap.unit) + (this.dataMap.width <= 80 ? 0.2 : this.dataMap.width <= 120 ? 0.1 : 0)
       if (height > width && height < 1) {
         this.scale(height.toFixed(2))
       }
@@ -148,8 +194,8 @@ export default {
       }
       let moveWidth = (this.stage.width() - this.group.width() * width) / 8
       let moveHeight = (this.stage.height() - this.group.height() * width) / 4
-      this.group.x(moveWidth)
-      this.group.y(moveHeight)
+      this.group.x(0)
+      this.group.y(moveHeight/2)
 
       this.touchListen()
     },
@@ -157,13 +203,24 @@ export default {
      * 绘制元素
      * 绘制车场的车位及其他建筑物
      **/
-    drawElement () {
+    drawElement (selectedNo, direction) {
       let border = this.dataMap.border
       this.group.add(createBorder(border))
       let elements = this.dataMap.parking
+      let parkingGroup
       if (elements && elements !== null) {
         elements.forEach(ele => {
-          let parkingGroup = createParking(ele)
+          if (ele.parking.value === selectedNo) {
+            ele.parking.fill = '#f66913'
+            parkingGroup = createParking(ele)
+            /**
+             * 定义重点
+             * */
+            this.loadParams.endPoint = [parkingGroup.x() + parkingGroup.children[1].x(), parkingGroup.y() + parkingGroup.children[1].y()]
+            this.loadParams.endValue = parkingGroup.children[1].text()
+          } else {
+            parkingGroup = createParking(ele)
+          }
           parkingGroup.on('tap', res => {
             this.clickElement(res)
           })
@@ -172,13 +229,32 @@ export default {
       }
       let es = this.dataMap.element
       if (es && es !== null) {
+        let elementGroup
         es.forEach(ele => {
           if (ele && ele !== null) {
-            let pg = createElement(ele)
-            pg.on('tap', res => {
+            console.info(ele)
+            if (ele.element[1].text === '入口' && direction === '1') {
+              elementGroup = createElement(ele)
+              createStart(ele.element[1].x + this.group.x() - 5, ele.element[1].y + this.group.y() + 10, this.group)
+              this.loadParams.startPoint = [elementGroup.x() + elementGroup.children[1].x(), elementGroup.y() + elementGroup.children[1].y()]
+              this.loadParams.startValue = elementGroup.children[1].text()
+            } else if (ele.element[1].text === 'N单元' && direction === '2') {
+              let point = (ele.element[1].x + ',' + ele.element[1].y)
+              if (this.loadP === point) {
+                createStart(ele.element[1].x + this.group.x() + 10, ele.element[1].y + this.group.y() - 15, this.group)
+                elementGroup = createElement(ele)
+                this.loadParams.startPoint = [elementGroup.x() + elementGroup.children[1].x(), elementGroup.y() + elementGroup.children[1].y()]
+                this.loadParams.startValue = elementGroup.children[1].text()
+              } else {
+                elementGroup = createElement(ele)
+              }
+            } else {
+              elementGroup = createElement(ele)
+            }
+            elementGroup.on('tap', res => {
               this.clickElement(res)
             })
-            this.group.add(pg)
+            this.group.add(elementGroup)
           }
         })
       }
@@ -205,6 +281,7 @@ export default {
        * */
       this.loadParams.startPoint = this.selectedParams.point
       this.loadParams.startValue = this.selectedParams.value
+      console.info(this.loadParams)
       /**
        * 换做新的图标
        * */
@@ -229,10 +306,26 @@ export default {
     }
   },
   mounted () {
-    this.dataMap = getMapData(2, res => {
+    window.requestAnimFrame = (function () {
+      return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
+        window.setTimeout(callback, 1000 / 60)
+      }
+    })()
+    let selectedNo = this.$route.query.plateNo;
+    let direction = this.$route.query.direction;
+    let parkId = this.$route.query.id;
+    if(!parkId){
+    	parkId = 62;
+    }
+    this.loadParams.mapId = parkId;
+    this.loadParams.startValue = this.$route.query.end;
+    this.loadParams.endValue = this.$route.query.start;
+    console.info(this.loadParams);
+    this.dataMap = getMapData(parkId, res => {
       if (res && res.code === 200) {
+        console.log(res.data)
         this.dataMap = res.data.mapData
-        this.initMap()
+        this.initMap(selectedNo, direction)
       }
     })
   }

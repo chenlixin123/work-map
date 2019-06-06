@@ -1,7 +1,5 @@
 <template>
   <div id="app"  style="height:100%;">
-    <x-header slot="header"  style="width:100%;position:absolute;left:0;top:0;z-index:100;"
-              title="室内地图"></x-header>
     <div>
       <router-view class="router-view"></router-view>
     </div>

@@ -78,8 +78,8 @@ export const createElement = (obj) => {
   }
   return elementGroup
 }
-export const createFlagSelected = (x, y, layer) => {
-  Konva.Image.fromURL('src/assets/dw-start.png', function (image) {
+export const createStart = (x, y, layer) => {
+  return Konva.Image.fromURL(require('../assets/start.png'), function (image) {
     image.x(x)
     image.y(y)
     layer.add(image)
@@ -93,17 +93,47 @@ export const createBorder = (obj) => {
 }
 export const createLoadLine = (points, isPer) => {
   let ps = []
-  points.forEach(p => {
+  points.forEach((p) => {
     ps.push((p.x * 10))
     ps.push((p.y * 10))
   })
   let redLine = new Konva.Line({
     id: 'load_line',
     points: ps,
-    stroke: 'red',
-    strokeWidth: 15,
+    stroke: '#5e98ff',
+    blue: 200,
+    offset: 10,
+    strokeWidth: 10,
     tension: 0.2
   })
   redLine.draggable(false)
   return redLine
+}
+export const createTipInfo = (msg) => {
+  let tl = new Konva.Label({
+    x: 0,
+    y: 0,
+    draggable: false
+  })
+  tl.add(new Konva.Tag({
+    fill: '#bbb',
+    stroke: '#333',
+    shadowColor: 'black',
+    shadowBlur: 10,
+    shadowOffset: [10, 10],
+    shadowOpacity: 0.2,
+    lineJoin: 'round',
+    pointerDirection: 'right',
+    pointerWidth: 20,
+    pointerHeight: 20,
+    cornerRadius: 5
+  }))
+  tl.add(new Konva.Text({
+    text: 'Hello World!',
+    fontSize: 50,
+    lineHeight: 1.2,
+    padding: 10,
+    fill: 'green'
+  }))
+  return tl
 }
