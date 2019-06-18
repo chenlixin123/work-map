@@ -11,15 +11,15 @@
 </style>
 <template>
   <div class="contain">
-    <div id="container"> </div>
-    <div v-if="isShowSheet" style="width: 100%; position: fixed; bottom: 0; height: 100px; z-index: 100;background-color: #FFFFFF">
+    <div id="container" v-cloak> </div>
+    <!-- <div v-if="isShowSheet" style="width: 100%; position: fixed; bottom: 0; height: 100px; z-index: 100;background-color: #FFFFFF">
       <div style="padding: 8px">
         <img style="width: 28px; height: 28px;" src="src/assets/dwei-f.png"/>
         <label style="font-weight: bolder; " v-text="selectedParams.value"></label>
       </div>
       <x-button text="设为起点" type="primary" :mini="true" @click.native="setStartPoint"  style="border-radius:99px;margin-top: 0;margin-left: 5%; width: 40%;height: 40px;"></x-button>
       <x-button text="到这去" plain type="default" :mini="true" @click.native="setEndPoint"  style="border-radius:99px;margin-top: 0;margin-left: 5%; width: 40%;height: 40px;"></x-button>
-    </div>
+    </div> -->
   </div>
 </template>
 <script>
@@ -43,7 +43,7 @@ export default {
       loadGroup: null,
       isPer: 1,
       isTouch: false,
-      isShowSheet: false,
+      // isShowSheet: false,
       points: [],
       selectedStart: null,
       /**
@@ -69,18 +69,22 @@ export default {
     },
     // 地图放大事件
     toBig () {
-      let value = -(0 - this.isPer - 0.008)
+      // alert(this.isPer)
+      let value = -(0 - this.isPer - 0.05)
+      // alert(IDBCursorWithValue)
       if (value > 0 && value <= 2.4) {
         this.scale(value)
-        this.isPer = value
+        // this.isPer = value
       }
     },
     // 地图缩小事件
     toSmall () {
-      let value = this.isPer - 0.008
+      // alert(this.isPer)
+      let value = this.isPer - 0.05
+      // alert(value)
       if (value > 0 && value >= 0.4) {
         this.scale(value)
-        this.isPer = value
+        // this.isPer = value
       }
     },
     // 地图调用的放大或缩小事件（只需传参调用即可）
@@ -108,7 +112,7 @@ export default {
       document.addEventListener('touchmove', function (e) {
         e.preventDefault()
         if (e.touches.length >= 2 && _this.isTouch) {
-          try {
+                  try {
             var now = e.touches
             var scale = _this.getDistance(now[0], now[1]) / _this.getDistance(_this.start[0], _this.start[1])
             var a = scale.toFixed(2)
@@ -162,17 +166,7 @@ export default {
       try {
         getLoad(this.loadParams, res => {
           if (res && res.code === 200) {
-            // let max_x = 0
-            // let min_y = res.data[0].y
-            // for( let i = 0; i < res.data.length; i++){
-            //     if(res.data[i].x > max_x){
-            //           max_x = res.data[i].x
-            //       }
-
-            //       if(res.data[i].y < min_y){
-            //           min_y = res.data[i].y
-            //       }
-            // }
+            // alert(this.isPer)
             var lines = res.data
             this.group.add(createLoadLine(lines, this.isPer))
             this.layer.draw()
@@ -186,6 +180,7 @@ export default {
        * */
       let width = this.stage.width() / (this.dataMap.width * this.dataMap.unit) + (this.dataMap.width <= 80 ? 0.2 : this.dataMap.width <= 120 ? 0.1 : 0)
       let height = this.group.height() / (this.dataMap.height * this.dataMap.unit) + (this.dataMap.width <= 80 ? 0.2 : this.dataMap.width <= 120 ? 0.1 : 0)
+      // console.log(width.toFixed(2))
       if (height > width && height < 1) {
         this.scale(height.toFixed(2))
       }
@@ -194,7 +189,8 @@ export default {
       }
       let moveWidth = (this.stage.width() - this.group.width() * width) / 8
       let moveHeight = (this.stage.height() - this.group.height() * width) / 4
-      this.group.x(0)
+      // console.log(-(this.min*(width.toFixed(2))))
+      this.group.x(-(this.min*(width.toFixed(2)))+7)
       this.group.y(moveHeight/2)
 
       this.touchListen()
@@ -260,15 +256,15 @@ export default {
       }
       this.layer.batchDraw()
     },
-    listeners () {
-      /**
-       * 将当前节点局中
-       * */
-      this.isShowSheet = true
-    },
+    // listeners () {
+    //   /**
+    //    * 将当前节点局中
+    //    * */
+    //   this.isShowSheet = true
+    // },
     clearListeners () {
       this.selected = {}
-      this.isShowSheet = false
+      // this.isShowSheet = false
     },
     setStartPoint () {
       var l = this.layer.findOne('#load_line')
@@ -306,7 +302,7 @@ export default {
     }
   },
   mounted () {
-    window.requestAnimFrame = (function () {
+        window.requestAnimFrame = (function () {
       return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
         window.setTimeout(callback, 1000 / 60)
       }
@@ -323,7 +319,15 @@ export default {
     console.info(this.loadParams);
     this.dataMap = getMapData(parkId, res => {
       if (res && res.code === 200) {
-        console.log(res.data)
+        // console.log(res.data.mapData.border.points)
+             let min = res.data.mapData.border.points[0]
+            for( let i = 0; i < res.data.mapData.border.points.length; i++){
+                  if(res.data.mapData.border.points[i] < min){
+                      min = res.data.mapData.border.points[i]
+                  }
+            }
+          // console.log(min)
+          this.min = min
         this.dataMap = res.data.mapData
         this.initMap(selectedNo, direction)
       }
