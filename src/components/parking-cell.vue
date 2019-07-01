@@ -3,23 +3,33 @@
     height: 100%;
   }
   #container {
-    overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10
+    overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10;
+    
   }
   *{
     /* -webkit-overflow-scrolling: touch; */
   }
+  .top{
+      width:562px; 
+      height:70px; 
+      position: absolute; 
+      top:30px; 
+      left:0px; 
+      border:1px solid;
+  }
 </style>
 <template>
   <div class="contain">
+    <div class="top">55555555555555555</div>
     <div id="container" v-cloak> </div>
-    <!-- <div v-if="isShowSheet" style="width: 100%; position: fixed; bottom: 0; height: 100px; z-index: 100;background-color: #FFFFFF">
+    <div v-if="isShowSheet" style="width: 100%; position: fixed; bottom: 0; height: 100px; z-index: 100;background-color: #FFFFFF">
       <div style="padding: 8px">
         <img style="width: 28px; height: 28px;" src="src/assets/dwei-f.png"/>
         <label style="font-weight: bolder; " v-text="selectedParams.value"></label>
       </div>
       <x-button text="设为起点" type="primary" :mini="true" @click.native="setStartPoint"  style="border-radius:99px;margin-top: 0;margin-left: 5%; width: 40%;height: 40px;"></x-button>
       <x-button text="到这去" plain type="default" :mini="true" @click.native="setEndPoint"  style="border-radius:99px;margin-top: 0;margin-left: 5%; width: 40%;height: 40px;"></x-button>
-    </div> -->
+    </div>
   </div>
 </template>
 <script>
@@ -43,7 +53,7 @@ export default {
       loadGroup: null,
       isPer: 1,
       isTouch: false,
-      // isShowSheet: false,
+      isShowSheet: false,
       points: [],
       selectedStart: null,
       /**
@@ -60,7 +70,9 @@ export default {
         startPoint: [],
         endValue: null,
         endPoint: []
-      }
+      },
+      x:'',
+      y:'',
     }
   },
   methods: {
@@ -69,27 +81,27 @@ export default {
     },
     // 地图放大事件
     toBig () {
-      // alert(this.isPer)
       let value = -(0 - this.isPer - 0.05)
       // alert(IDBCursorWithValue)
       if (value > 0 && value <= 2.4) {
         this.scale(value)
-        // this.isPer = value
+        this.isPer = value
       }
     },
     // 地图缩小事件
     toSmall () {
-      // alert(this.isPer)
       let value = this.isPer - 0.05
-      // alert(value)
       if (value > 0 && value >= 0.4) {
         this.scale(value)
-        // this.isPer = value
+        this.isPer = value
       }
     },
     // 地图调用的放大或缩小事件（只需传参调用即可）
     scale (per) {
       this.isPer = per
+      console.log( this.group.scale)
+       this.group.x(this.x)
+          this.group.y(this.y)
       this.group.scale({x: per, y: per})
       this.layer.draw()
     },
@@ -110,7 +122,7 @@ export default {
         _this.isTouch = true
       }, { passive: false })
       document.addEventListener('touchmove', function (e) {
-        e.preventDefault()
+        // e.preventDefault()
         if (e.touches.length >= 2 && _this.isTouch) {
                   try {
             var now = e.touches
@@ -135,7 +147,10 @@ export default {
         if (this.isTouch) { this.isTouch = false }
       }, { passive: false })
     },
+
+    // 这里开始查起 （画导航路线）
     clickElement (res) {
+      console.log(res)
       var group = res.target.parent
       if (group && group.children.length === 2) {
         var elementNode = group.children[1].text()
@@ -189,10 +204,11 @@ export default {
       }
       let moveWidth = (this.stage.width() - this.group.width() * width) / 8
       let moveHeight = (this.stage.height() - this.group.height() * width) / 4
-      // console.log(-(this.min*(width.toFixed(2))))
       this.group.x(-(this.min*(width.toFixed(2)))+7)
       this.group.y(moveHeight/2)
-
+      this.x = -(this.min*(width.toFixed(2)))+7
+      this.y = moveHeight/2
+      // alert('8888888888888888')
       this.touchListen()
     },
     /**
@@ -256,15 +272,15 @@ export default {
       }
       this.layer.batchDraw()
     },
-    // listeners () {
-    //   /**
-    //    * 将当前节点局中
-    //    * */
-    //   this.isShowSheet = true
-    // },
+    listeners () {
+      /**
+       * 将当前节点局中
+       * */
+      this.isShowSheet = true
+    },
     clearListeners () {
       this.selected = {}
-      // this.isShowSheet = false
+      this.isShowSheet = false
     },
     setStartPoint () {
       var l = this.layer.findOne('#load_line')
@@ -327,7 +343,7 @@ export default {
                   }
             }
           // console.log(min)
-          this.min = min
+        this.min = min
         this.dataMap = res.data.mapData
         this.initMap(selectedNo, direction)
       }
