@@ -12,23 +12,96 @@
   .top{
       width:562px; 
       height:70px; 
+      line-height: 70px;
       position: absolute; 
       top:30px; 
-      left:0px; 
-      border:1px solid;
+      left:93px; 
+      z-index: 1000;
+      /* border:1px solid; */
+      display: flex;
+      justify-content: space-between;
+      /* align-items: center; */
+      box-sizing: border-box;
+      padding-left: 102px;
+      padding-right: 88px;
+      background: white;
+       /* box-shadow: darkgrey 0px 0px 30px 5px; */
+       box-shadow: 2px 4px 11px darkgrey;
+  }
+  .top1{
+    width: 100%;
+    font-size: 28px;
+    color: #666;
+    /* border: 1px solid; */
+    text-align: left;
+  }
+  .top_img{
+      width: 40px;
+      height: 16px;
+  }
+  .top2{
+    width: 100%;
+    font-size: 28px;
+    color: #666;
+    /* border: 1px solid; */
+    text-align: right;
+  }
+  .bottom{
+    width: 100%;
+    height: 218px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    background: white;
+    text-align: center;
+  }
+  .bottom1{
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    padding-left: 52px;
+    padding-top: 48px;
+    display: flex;
+  }
+  .title{
+      font-size: 34px;
+      font-weight: bold;
+      color: #333;
+  }
+  .text{
+    font-size: 28px;
+    color: #666;
+    position: absolute;
+    left: 170px;
+  }
+  .button{
+    border-radius:99px;
+    margin-left: 5%; 
+    width: 450px;
+    height: 70px;
+    background: #f66913;
+    margin: 0 auto;
+    margin-top: 20px;
   }
 </style>
 <template>
   <div class="contain">
-    <div class="top">55555555555555555</div>
-    <div id="container" v-cloak> </div>
-    <div v-if="isShowSheet" style="width: 100%; position: fixed; bottom: 0; height: 100px; z-index: 100;background-color: #FFFFFF">
-      <div style="padding: 8px">
-        <img style="width: 28px; height: 28px;" src="src/assets/dwei-f.png"/>
-        <label style="font-weight: bolder; " v-text="selectedParams.value"></label>
+    <div class="top">
+      <div class="top1" @click="startTap">{{starte}}</div>
+      <div class="top_img">
+        <img src="@/assets/tubiao@2x.png" alt="" width="100%">
       </div>
-      <x-button text="设为起点" type="primary" :mini="true" @click.native="setStartPoint"  style="border-radius:99px;margin-top: 0;margin-left: 5%; width: 40%;height: 40px;"></x-button>
-      <x-button text="到这去" plain type="default" :mini="true" @click.native="setEndPoint"  style="border-radius:99px;margin-top: 0;margin-left: 5%; width: 40%;height: 40px;"></x-button>
+      <div class="top2" @click="endTap">{{end}}</div>
+    </div>
+    <div id="container" v-cloak> </div>
+    <div v-if="isShowSheet" class="bottom">
+      <div class="bottom1">
+        <!-- <img style="width: 28px; height: 28px;" src="src/assets/dwei-f.png"/> -->
+        <div style="font-weight: bolder; " class="title">{{seat == '起点' ? starts : ends}}</div>
+        <div class="text">点击地图确认您的{{seat}}位置</div>
+      </div>
+      <x-button v-if="seat == '起点'" text="确认起点" type="primary" :mini="true" @click.native="setStartPoint" class="button"></x-button>
+      <x-button v-if="seat == '终点'" text="确认终点" type="primary" :mini="true" @click.native="setEndPoint" class="button"></x-button>
     </div>
   </div>
 </template>
@@ -73,9 +146,33 @@ export default {
       },
       x:'',
       y:'',
+      seat:'',
+      starte:'',
+      starts:'',
+      end:'',
+      ends:'',
     }
   },
+  created(){
+      let that = this
+      console.log(that.$route.query)
+      that.starts = that.$route.query.start
+      that.ends = that.$route.query.end
+  },
   methods: {
+    //点击起点
+    startTap(){
+      let that = this
+      that.isShowSheet = true
+      that.seat = '起点'
+      that.starts = that.starte
+    },
+     endTap(){
+      let that = this
+      that.isShowSheet = true
+      that.seat = '终点'
+       that.ends = that.end
+    },
     drawStart () {
         
     },
@@ -99,9 +196,9 @@ export default {
     // 地图调用的放大或缩小事件（只需传参调用即可）
     scale (per) {
       this.isPer = per
-      console.log( this.group.scale)
-       this.group.x(this.x)
-          this.group.y(this.y)
+      // console.log( this.group.scale)
+      //  this.group.x(this.x)
+      //     this.group.y(this.y)
       this.group.scale({x: per, y: per})
       this.layer.draw()
     },
@@ -113,16 +210,18 @@ export default {
     // 判断用户是放大或所缩小事件
     touchListen () {
       var _this = this
+       let that = this
       document.addEventListener('touchstart', function (e) {
         this.pageX = e.targetTouches[0].pageX
         this.pageY = e.targetTouches[0].pageY
         if (e.touches.length >= 2) {
+          // alert(e.touches)
           _this.start = e.touches
         }
         _this.isTouch = true
       }, { passive: false })
       document.addEventListener('touchmove', function (e) {
-        // e.preventDefault()
+        e.preventDefault()
         if (e.touches.length >= 2 && _this.isTouch) {
                   try {
             var now = e.touches
@@ -150,8 +249,13 @@ export default {
 
     // 这里开始查起 （画导航路线）
     clickElement (res) {
-      console.log(res)
-      var group = res.target.parent
+      let that = this
+      console.log(that.seat)
+      if(that.seat == '起点'){
+        console.log(res)
+          that.starts = res.target.parent.children[1].attrs.text
+          console.log(that.starts)
+           var group = res.target.parent
       if (group && group.children.length === 2) {
         var elementNode = group.children[1].text()
         if (elementNode !== '') {
@@ -162,6 +266,23 @@ export default {
           this.selectedParams.point = [group.x() + group.children[1].x(), group.y() + group.children[1].y()]
           this.listeners()
         }
+      }
+      }else if(that.seat == '终点'){
+        console.log(res)
+          that.ends = res.target.parent.children[1].attrs.text
+          console.log(that.ends)
+           var group = res.target.parent
+      if (group && group.children.length === 2) {
+        var elementNode = group.children[1].text()
+        if (elementNode !== '') {
+           /**
+            * 标记当前节点为路线起点或终点
+            * */
+          this.selectedParams.value = elementNode
+          this.selectedParams.point = [group.x() + group.children[1].x(), group.y() + group.children[1].y()]
+          this.listeners()
+        }
+      }
       }
     },
     initMap (selectedNo, direction) {
@@ -179,6 +300,7 @@ export default {
        * */
       console.log('开始绘制路线')
       try {
+        console.log(this.loadParams)
         getLoad(this.loadParams, res => {
           if (res && res.code === 200) {
             // alert(this.isPer)
@@ -276,45 +398,87 @@ export default {
       /**
        * 将当前节点局中
        * */
-      this.isShowSheet = true
+    
     },
     clearListeners () {
       this.selected = {}
       this.isShowSheet = false
     },
     setStartPoint () {
-      var l = this.layer.findOne('#load_line')
-      if (l && l !== null) {
-        l.destroy()
-        this.layer.draw()
+      let that = this
+      window.requestAnimFrame = (function () {
+      return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
+        window.setTimeout(callback, 1000 / 60)
       }
-      /**
-       * 设定起点
-       * */
-      this.loadParams.startPoint = this.selectedParams.point
-      this.loadParams.startValue = this.selectedParams.value
-      console.info(this.loadParams)
-      /**
-       * 换做新的图标
-       * */
+    })()
+    let selectedNo = this.$route.query.plateNo;
+    let direction = this.$route.query.direction;
+    let parkId = this.$route.query.id;
+    if(!parkId){
+    	parkId = 62;
+    }
+    this.loadParams.mapId = parkId;
+    this.loadParams.startValue = this.ends;
+    this.loadParams.endValue = this.starts;
+    this.starte = this.$route.query.start
+    this.end = this.$route.query.end
+    console.info(this.loadParams);
+    this.dataMap = getMapData(parkId, res => {
+      if (res && res.code === 200) {
+        // console.log(res.data.mapData.border.points)
+             let min = res.data.mapData.border.points[0]
+            for( let i = 0; i < res.data.mapData.border.points.length; i++){
+                  if(res.data.mapData.border.points[i] < min){
+                      min = res.data.mapData.border.points[i]
+                  }
+            }
+          // console.log(min)
+        this.min = min
+        this.dataMap = res.data.mapData
+        this.initMap(selectedNo, direction)
+      }
+    })
+        that.starte = that.starts
+        that.end = that.ends
+        that.isShowSheet = false
     },
     setEndPoint () {
-      if (this.loadParams.startValue === null) {
-        alert('请选择起点')
-      } else {
-        this.loadParams.endPoint = this.selectedParams.point
-        this.loadParams.endValue = this.selectedParams.value
-        getLoad(this.loadParams, res => {
-          if (res && res.code === 200) {
-            var lines = res.data
-            /**
-             * 画出坐标曲线
-             * */
-            this.group.add(createLoadLine(lines, this.isPer))
-            this.layer.draw()
-          }
-        })
+      let that = this
+        window.requestAnimFrame = (function () {
+      return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
+        window.setTimeout(callback, 1000 / 60)
       }
+    })()
+    let selectedNo = this.$route.query.plateNo;
+    let direction = this.$route.query.direction;
+    let parkId = this.$route.query.id;
+    if(!parkId){
+    	parkId = 62;
+    }
+    this.loadParams.mapId = parkId;
+    this.loadParams.startValue = this.ends;
+    this.loadParams.endValue = this.starts;
+    this.starte = this.$route.query.starts
+    this.end = this.$route.query.ends
+    console.info(this.loadParams);
+    this.dataMap = getMapData(parkId, res => {
+      if (res && res.code === 200) {
+        // console.log(res.data.mapData.border.points)
+             let min = res.data.mapData.border.points[0]
+            for( let i = 0; i < res.data.mapData.border.points.length; i++){
+                  if(res.data.mapData.border.points[i] < min){
+                      min = res.data.mapData.border.points[i]
+                  }
+            }
+          // console.log(min)
+        this.min = min
+        this.dataMap = res.data.mapData
+        this.initMap(selectedNo, direction)
+      }
+    })
+    that.end = that.ends
+    that.starte = that.starts
+    that.isShowSheet = false
     }
   },
   mounted () {
@@ -332,6 +496,8 @@ export default {
     this.loadParams.mapId = parkId;
     this.loadParams.startValue = this.$route.query.end;
     this.loadParams.endValue = this.$route.query.start;
+    this.starte = this.$route.query.start
+    this.end = this.$route.query.end
     console.info(this.loadParams);
     this.dataMap = getMapData(parkId, res => {
       if (res && res.code === 200) {
