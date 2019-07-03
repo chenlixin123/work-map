@@ -3,7 +3,7 @@
     height: 100%;
   }
   #container {
-    overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10;
+    overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10;position: relative;
     
   }
   *{
@@ -35,6 +35,13 @@
     /* border: 1px solid; */
     text-align: left;
   }
+  .top1s{
+    width: 100%;
+    font-size: 28px;
+    color: #f66913;
+    /* border: 1px solid; */
+    text-align: left;
+  }
   .top_img{
       width: 40px;
       height: 16px;
@@ -46,6 +53,13 @@
     /* border: 1px solid; */
     text-align: right;
   }
+  .top2s{
+    width: 100%;
+    font-size: 28px;
+    color: #f66913;
+    /* border: 1px solid; */
+    text-align: right;
+  }
   .bottom{
     width: 100%;
     height: 218px;
@@ -54,6 +68,7 @@
     bottom: 0;
     background: white;
     text-align: center;
+    z-index: 20000;
   }
   .bottom1{
     width: 100%;
@@ -62,6 +77,7 @@
     padding-left: 52px;
     padding-top: 48px;
     display: flex;
+    z-index: 20000;
   }
   .title{
       font-size: 34px;
@@ -83,22 +99,45 @@
     margin: 0 auto;
     margin-top: 20px;
   }
+  .start{
+    width: 40px;
+    height: 66px;
+    position: absolute;
+    top: 515px;
+    left: 300px;
+    z-index: 10000;
+  }
+  .end{
+    width: 180px;
+    height: 72px;
+    position: absolute;
+    top: 100px;
+    left: 0;
+    z-index: 10000;
+  }
 </style>
 <template>
   <div class="contain">
     <div class="top">
-      <div class="top1" @click="startTap">{{starte}}</div>
+      <div :class="color == '1' ? 'top1s' : 'top1'" @click="startTap">{{starte}}</div>
       <div class="top_img">
         <img src="@/assets/tubiao@2x.png" alt="" width="100%">
       </div>
-      <div class="top2" @click="endTap">{{end}}</div>
+      <div :class="color == '2' ? 'top2s' : 'top2'" @click="endTap">{{end}}</div>
     </div>
-    <div id="container" v-cloak> </div>
+    <div id="container" v-cloak></div>
+    <!-- <div class="start">
+        <img src="@/assets/qidian@2x.png" alt="" width="100%">
+    </div>
+     <div class="end">
+        <img src="@/assets/huihuakaung@2x.png" alt="" width="100%">
+     </div> -->
     <div v-if="isShowSheet" class="bottom">
       <div class="bottom1">
         <!-- <img style="width: 28px; height: 28px;" src="src/assets/dwei-f.png"/> -->
         <div style="font-weight: bolder; " class="title">{{seat == '起点' ? starts : ends}}</div>
-        <div class="text">点击地图确认您的{{seat}}位置</div>
+        <div class="text" v-if="seat == '起点'">点击地图确认您的{{seat}}位置</div>
+        <div class="text" v-if="seat == '终点'">点击车位确认您要去的{{seat}}位置</div>
       </div>
       <x-button v-if="seat == '起点'" text="确认起点" type="primary" :mini="true" @click.native="setStartPoint" class="button"></x-button>
       <x-button v-if="seat == '终点'" text="确认终点" type="primary" :mini="true" @click.native="setEndPoint" class="button"></x-button>
@@ -151,11 +190,13 @@ export default {
       starts:'',
       end:'',
       ends:'',
+      color:'',
+      texts:'',
+      storey:'B1层'
     }
   },
   created(){
       let that = this
-      console.log(that.$route.query)
       that.starts = that.$route.query.start
       that.ends = that.$route.query.end
   },
@@ -166,12 +207,15 @@ export default {
       that.isShowSheet = true
       that.seat = '起点'
       that.starts = that.starte
+      that.color = '1'
     },
+    //点击终点
      endTap(){
       let that = this
       that.isShowSheet = true
       that.seat = '终点'
        that.ends = that.end
+       that.color = '2'
     },
     drawStart () {
         
@@ -196,9 +240,6 @@ export default {
     // 地图调用的放大或缩小事件（只需传参调用即可）
     scale (per) {
       this.isPer = per
-      // console.log( this.group.scale)
-      //  this.group.x(this.x)
-      //     this.group.y(this.y)
       this.group.scale({x: per, y: per})
       this.layer.draw()
     },
@@ -250,11 +291,10 @@ export default {
     // 这里开始查起 （画导航路线）
     clickElement (res) {
       let that = this
-      console.log(that.seat)
       if(that.seat == '起点'){
-        console.log(res)
+        let x = res.currentTarget.attrs.value.x
+        let y = res.currentTarget.attrs.value.y
           that.starts = res.target.parent.children[1].attrs.text
-          console.log(that.starts)
            var group = res.target.parent
       if (group && group.children.length === 2) {
         var elementNode = group.children[1].text()
@@ -268,9 +308,7 @@ export default {
         }
       }
       }else if(that.seat == '终点'){
-        console.log(res)
           that.ends = res.target.parent.children[1].attrs.text
-          console.log(that.ends)
            var group = res.target.parent
       if (group && group.children.length === 2) {
         var elementNode = group.children[1].text()
@@ -286,6 +324,7 @@ export default {
       }
     },
     initMap (selectedNo, direction) {
+      let that = this
       console.log('初始化11111111')
       this.stage = createStage('container')
       /**
@@ -294,19 +333,73 @@ export default {
       this.layer = createLayer(this.stage)
       this.group = createGroup(this.layer)
       this.loadGroup = createGroup(this.layer)
+      this.img = createGroup(this.layer)
       this.drawElement(selectedNo, direction)
       /**
        * 绘制路线
        * */
       console.log('开始绘制路线')
       try {
-        console.log(this.loadParams)
         getLoad(this.loadParams, res => {
           if (res && res.code === 200) {
-            // alert(this.isPer)
             var lines = res.data
             this.group.add(createLoadLine(lines, this.isPer))
-            this.layer.draw()
+            var img = new Image();
+            img.src = require('@/assets/qidian@2x.png');
+    //5.图片加载完后
+    // img.onload = function () {
+        var kImage = new Konva.Image({
+            image:img,
+            x:(res.data[0].x)*10-20,
+            y:(res.data[0].y)*10-65,
+            width:40,
+            height:66,
+            //偏移
+        //     offsetX:img.width * 0.5,
+        //     offsetY:img.height * 0.5,
+        //     // offset的设置是使得围绕中心旋转
+        //  offset:{
+        //         x: img.width/2,
+        //         y: img.height/2
+        //     }
+
+        })
+
+         var imgs = new Image();
+            imgs.src = require('@/assets/huihuakaung@2x.png');
+    //5.图片加载完后
+    // img.onload = function () {
+        var kImages = new Konva.Image({
+            image:imgs,
+            x:(res.data[res.data.length - 1].x)*10-90,
+            y:(res.data[res.data.length - 1].y)*10-72,
+            width:180,
+            height:72,
+        })
+               let ss = Number(that.end)
+               let seats = ''
+               if(ss >= 0){
+                    seats = '车位'
+               }else{
+                 seats = ''
+               }
+            let all = that.storey + that.end + seats
+            var text = new Konva.Text({
+            x: (res.data[res.data.length - 1].x)*10-(all.split('').length/2*20)-(seats == '' ? -10 : -15),
+            y: (res.data[res.data.length - 1].y)*10-50,
+            padding: 4,
+            text: all,
+            fontSize: 20,
+            fontFamily: 'Calibri',
+            fill: '#666',
+        });
+      
+        //添加到组
+        that.group.add(kImage)
+        that.group.add(kImages)
+        that.group.add(text)
+    // }
+        this.layer.draw()
           }
         })
       } catch (e) {
@@ -338,12 +431,14 @@ export default {
      * 绘制车场的车位及其他建筑物
      **/
     drawElement (selectedNo, direction) {
+      let that = this
       let border = this.dataMap.border
       this.group.add(createBorder(border))
       let elements = this.dataMap.parking
       let parkingGroup
       if (elements && elements !== null) {
         elements.forEach(ele => {
+          
           if (ele.parking.value === selectedNo) {
             ele.parking.fill = '#f66913'
             parkingGroup = createParking(ele)
@@ -366,7 +461,6 @@ export default {
         let elementGroup
         es.forEach(ele => {
           if (ele && ele !== null) {
-            console.info(ele)
             if (ele.element[1].text === '入口' && direction === '1') {
               elementGroup = createElement(ele)
               createStart(ele.element[1].x + this.group.x() - 5, ele.element[1].y + this.group.y() + 10, this.group)
@@ -406,6 +500,7 @@ export default {
     },
     setStartPoint () {
       let that = this
+      that.color = ''
       window.requestAnimFrame = (function () {
       return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
         window.setTimeout(callback, 1000 / 60)
@@ -420,19 +515,18 @@ export default {
     this.loadParams.mapId = parkId;
     this.loadParams.startValue = this.ends;
     this.loadParams.endValue = this.starts;
+    this.storey = this.$route.query.storey
     this.starte = this.$route.query.start
     this.end = this.$route.query.end
     console.info(this.loadParams);
     this.dataMap = getMapData(parkId, res => {
       if (res && res.code === 200) {
-        // console.log(res.data.mapData.border.points)
              let min = res.data.mapData.border.points[0]
             for( let i = 0; i < res.data.mapData.border.points.length; i++){
                   if(res.data.mapData.border.points[i] < min){
                       min = res.data.mapData.border.points[i]
                   }
             }
-          // console.log(min)
         this.min = min
         this.dataMap = res.data.mapData
         this.initMap(selectedNo, direction)
@@ -444,6 +538,7 @@ export default {
     },
     setEndPoint () {
       let that = this
+       that.color = ''
         window.requestAnimFrame = (function () {
       return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
         window.setTimeout(callback, 1000 / 60)
@@ -458,19 +553,18 @@ export default {
     this.loadParams.mapId = parkId;
     this.loadParams.startValue = this.ends;
     this.loadParams.endValue = this.starts;
+    this.storey = this.$route.query.storey
     this.starte = this.$route.query.starts
     this.end = this.$route.query.ends
     console.info(this.loadParams);
     this.dataMap = getMapData(parkId, res => {
       if (res && res.code === 200) {
-        // console.log(res.data.mapData.border.points)
              let min = res.data.mapData.border.points[0]
             for( let i = 0; i < res.data.mapData.border.points.length; i++){
                   if(res.data.mapData.border.points[i] < min){
                       min = res.data.mapData.border.points[i]
                   }
             }
-          // console.log(min)
         this.min = min
         this.dataMap = res.data.mapData
         this.initMap(selectedNo, direction)
@@ -496,19 +590,18 @@ export default {
     this.loadParams.mapId = parkId;
     this.loadParams.startValue = this.$route.query.end;
     this.loadParams.endValue = this.$route.query.start;
+    this.storey = this.$route.query.storey
     this.starte = this.$route.query.start
     this.end = this.$route.query.end
     console.info(this.loadParams);
     this.dataMap = getMapData(parkId, res => {
       if (res && res.code === 200) {
-        // console.log(res.data.mapData.border.points)
              let min = res.data.mapData.border.points[0]
             for( let i = 0; i < res.data.mapData.border.points.length; i++){
                   if(res.data.mapData.border.points[i] < min){
                       min = res.data.mapData.border.points[i]
                   }
             }
-          // console.log(min)
         this.min = min
         this.dataMap = res.data.mapData
         this.initMap(selectedNo, direction)

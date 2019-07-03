@@ -32,7 +32,7 @@ export default {
         title: '国贸B2停车位',
         desc: '北京市朝阳区青年路金泰国益大厦地下',
         url: {
-          path: '/ParkingCell?plateNo=H&id=62&start=入口&end=42',
+          path: '/ParkingCell?plateNo=H&id=62&start=入口&end=42&storey=B1层',
           replace: false
         },
         meta: {
@@ -46,7 +46,7 @@ export default {
         title: '蓝堡公寓南区',
         desc: '蓝堡公寓南区',
         url: {
-          path: '/ParkingCell?plateNo=H&id=68&start=42&end=出口',
+          path: '/ParkingCell?plateNo=H&id=68&start=42&end=出口&storey=B2层',
           replace: false
         },
         meta: {

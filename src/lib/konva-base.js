@@ -97,6 +97,7 @@ export const createLoadLine = (points, isPer) => {
     ps.push((p.x * 10))
     ps.push((p.y * 10))
   })
+  // console.log(ps)
   let redLine = new Konva.Line({
     id: 'load_line',
     points: ps,
