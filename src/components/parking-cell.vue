@@ -6,9 +6,9 @@
     overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10;position: relative;
     
   }
-  *{
-    /* -webkit-overflow-scrolling: touch; */
-  }
+  /* *{
+    -webkit-overflow-scrolling: touch;
+  } */
   .top{
       width:562px; 
       height:70px; 
