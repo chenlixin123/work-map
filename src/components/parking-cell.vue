@@ -29,14 +29,14 @@
        box-shadow: 2px 4px 11px darkgrey;
   }
   .top1{
-    width: 100%;
+    width: 40%;
     font-size: 28px;
     color: #666;
     /* border: 1px solid; */
     text-align: left;
   }
   .top1s{
-    width: 100%;
+    width: 40%;
     font-size: 28px;
     color: #f66913;
     /* border: 1px solid; */
@@ -45,16 +45,17 @@
   .top_img{
       width: 40px;
       height: 16px;
+      margin-top: -5px;
   }
   .top2{
-    width: 100%;
+    width: 40%;
     font-size: 28px;
     color: #666;
-    /* border: 1px solid; */
+    border: 1px solid;
     text-align: right;
   }
   .top2s{
-    width: 100%;
+    width: 40%;
     font-size: 28px;
     color: #f66913;
     /* border: 1px solid; */
@@ -94,7 +95,9 @@
     border-radius:99px;
     margin-left: 5%; 
     width: 450px;
+    font-size: 40px;
     height: 70px;
+    line-height: 70px;
     background: #f66913;
     margin: 0 auto;
     margin-top: 20px;
@@ -192,7 +195,7 @@ export default {
       ends:'',
       color:'',
       texts:'',
-      storey:'B1层'
+      storey:'B3层'
     }
   },
   created(){
@@ -290,6 +293,10 @@ export default {
 
     // 这里开始查起 （画导航路线）
     clickElement (res) {
+      console.log(res.target.parent.children[1].attrs.text)
+      if(res.target.parent.children[1].attrs.text == '' || res.target.parent.children[1].attrs.text == undefined ||res.target.parent.children[1].attrs.text == '出风'){
+        return
+      }
       let that = this
       if(that.seat == '起点'){
         let x = res.currentTarget.attrs.value.x
@@ -395,11 +402,12 @@ export default {
         });
       
         //添加到组
-        that.group.add(kImage)
+        setTimeout(res => {
+                 that.group.add(kImage)
         that.group.add(kImages)
         that.group.add(text)
-    // }
-        this.layer.draw()
+        that.layer.draw()
+        },200)
           }
         })
       } catch (e) {
@@ -515,7 +523,7 @@ export default {
     this.loadParams.mapId = parkId;
     this.loadParams.startValue = this.ends;
     this.loadParams.endValue = this.starts;
-    this.storey = this.$route.query.storey
+    // this.storey = this.$route.query.storey
     this.starte = this.$route.query.start
     this.end = this.$route.query.end
     console.info(this.loadParams);
@@ -553,7 +561,7 @@ export default {
     this.loadParams.mapId = parkId;
     this.loadParams.startValue = this.ends;
     this.loadParams.endValue = this.starts;
-    this.storey = this.$route.query.storey
+    // this.storey = this.$route.query.storey
     this.starte = this.$route.query.starts
     this.end = this.$route.query.ends
     console.info(this.loadParams);
@@ -590,7 +598,7 @@ export default {
     this.loadParams.mapId = parkId;
     this.loadParams.startValue = this.$route.query.end;
     this.loadParams.endValue = this.$route.query.start;
-    this.storey = this.$route.query.storey
+    // this.storey = this.$route.query.storey
     this.starte = this.$route.query.start
     this.end = this.$route.query.end
     console.info(this.loadParams);

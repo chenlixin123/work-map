@@ -46,7 +46,7 @@ export default {
         title: '蓝堡公寓南区',
         desc: '蓝堡公寓南区',
         url: {
-          path: '/ParkingCell?plateNo=H&id=68&start=42&end=出口&storey=B2层',
+          path: '/ParkingCell?plateNo=H&id=68&start=大厅&end=43&storey=B2层',
           replace: false
         },
         meta: {
