@@ -6,6 +6,7 @@ import VueRouter from 'vue-router'
 import App from './App'
 import Home from './components/HelloFromVux'
 import ParkingCell from '@/components/parking-cell'
+import emptyPage from '@/components/emptyPage'
 Vue.use(VueRouter)
 
 const routes = [
@@ -17,6 +18,11 @@ const routes = [
     path: '/ParkingCell/',
     name: 'ParkingCell',
     component: ParkingCell
+  },
+  {
+    path: '/emptyPage',
+    name: 'EmptyPage',
+    component: emptyPage
   }
 ]
 

@@ -32,10 +32,19 @@ export const createGroup = (layer) => {
  * 一个车位包含一个组 一个矩形框， 一个文本域
  * */
 export const createParking = (obj) => {
-  let parkingGroup = new Konva.Group({x: obj.x, y: obj.y})
+  let parkingGroup = null
+  if (obj.attrs === undefined) {
+    parkingGroup = new Konva.Group({x: obj.x, y: obj.y})
+  } else {
+    parkingGroup = new Konva.Group(obj.attrs)
+  }
+  //let parkingGroup = new Konva.Group({x: obj.x, y: obj.y})
   let parkingRect = new Konva.Rect(obj.parking)
   parkingRect.perfectDrawEnabled(false)
+  parkingRect.draggable(false)
   let parkingLabel = new Konva.Text(obj.label)
+  parkingLabel.draggable(false)
+  parkingGroup.draggable(false)
   parkingGroup.add(parkingRect)
   parkingGroup.add(parkingLabel)
   parkingGroup.value({x: obj.x, y: obj.y, value: parkingRect.value()})
@@ -87,9 +96,23 @@ export const createStart = (x, y, layer) => {
   })
 }
 export const createBorder = (obj) => {
-  let redLine = new Konva.Line(obj)
+  let borderGroup = null
+  let redLine = null
+  if (obj.attrs === undefined) {
+    borderGroup = new Konva.Group({x: 0, y: 0})
+    redLine = new Konva.Line(obj)
+  } else {
+    borderGroup = new Konva.Group(obj.attrs)
+    redLine = new Konva.Line(obj.element)
+  }
   redLine.draggable(false)
-  return redLine
+  redLine.perfectDrawEnabled(false)
+  borderGroup.draggable(false)
+  borderGroup.add(redLine)
+
+  // let redLine = new Konva.Line(obj)
+  // redLine.draggable(false)
+  return borderGroup
 }
 export const createLoadLine = (points, isPer) => {
   let ps = []

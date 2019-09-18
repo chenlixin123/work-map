@@ -6,9 +6,9 @@
     overflow:hidden;height: 99%; margin: 0; background-color: #F0FFFF;z-index: 10;position: relative;
     
   }
-  /* *{
+  *{
     -webkit-overflow-scrolling: touch;
-  } */
+  }
   .top{
       width:562px; 
       height:70px; 
@@ -22,8 +22,8 @@
       justify-content: space-between;
       /* align-items: center; */
       box-sizing: border-box;
-      padding-left: 102px;
-      padding-right: 88px;
+      /* padding-left: 102px; */
+      /* padding-right: 88px; */
       background: white;
        /* box-shadow: darkgrey 0px 0px 30px 5px; */
        box-shadow: 2px 4px 11px darkgrey;
@@ -33,14 +33,14 @@
     font-size: 28px;
     color: #666;
     /* border: 1px solid; */
-    text-align: left;
+    text-align: center;
   }
   .top1s{
     width: 40%;
     font-size: 28px;
     color: #f66913;
     /* border: 1px solid; */
-    text-align: left;
+    text-align: center;
   }
   .top_img{
       width: 40px;
@@ -51,15 +51,15 @@
     width: 40%;
     font-size: 28px;
     color: #666;
-    border: 1px solid;
-    text-align: right;
+    /* border: 1px solid; */
+    text-align: center;
   }
   .top2s{
     width: 40%;
     font-size: 28px;
     color: #f66913;
     /* border: 1px solid; */
-    text-align: right;
+    text-align: center;
   }
   .bottom{
     width: 100%;
@@ -118,10 +118,61 @@
     left: 0;
     z-index: 10000;
   }
+  .loading{
+    width:300px;
+    height: 60px;
+    /* border: 1px solid ; */
+    position: absolute;
+    top: 50%;
+    left: 30%;
+    z-index: 5000;
+    font-size: 30px;
+    text-align: center;
+    line-height: 60px;
+    background: rgba(0, 0, 0, .6);
+    color: white;
+  }
+  .bbt{
+    width: 100%;
+    position: fixed;
+     left: 0;
+    bottom:10px;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-around;
+  }
+  .big{
+    background: white;
+    width:80px;
+    height:60px;
+    outline: none;
+    border:none;
+    text-align: center;
+    line-height: 60px;
+    font-size: 60px;
+    border:1px solid rgb(174, 172, 172);
+    box-shadow: 2px 4px 11px darkgrey;
+  }
+  .small{
+    z-index: 1000;
+    background: white;
+    width:80px;
+    height: 60px;
+    text-align: center;
+    line-height: 60px;
+    font-size: 60px;
+    border:1px solid rgb(174, 172, 172);
+    box-shadow: 2px 4px 11px darkgrey;
+  }
+  .resh{
+    width: 80px;
+    height: 80px;
+  }
 </style>
 <template>
   <div class="contain">
-    <div class="top">
+    <div class="loading" v-if="show == false">加载中请稍候...</div>
+    <div class="top" v-if="show == true && type != 0">
       <div :class="color == '1' ? 'top1s' : 'top1'" @click="startTap">{{starte}}</div>
       <div class="top_img">
         <img src="@/assets/tubiao@2x.png" alt="" width="100%">
@@ -145,6 +196,15 @@
       <x-button v-if="seat == '起点'" text="确认起点" type="primary" :mini="true" @click.native="setStartPoint" class="button"></x-button>
       <x-button v-if="seat == '终点'" text="确认终点" type="primary" :mini="true" @click.native="setEndPoint" class="button"></x-button>
     </div>
+
+      <div class="bbt">
+          <div class="big" @click="toBig">+</div>
+          <!-- <div class="resh" @click="initMap">Refresh</div> -->
+          <a class="resh" @click="scales"><img style="width:100%;" src="@/assets/shouye_shuaxin.png" alt=""></a>
+          <!-- <button @click="scales">resh</button> -->
+          <div class="small" @click="toSmall">-</div>
+      </div>
+      
   </div>
 </template>
 <script>
@@ -160,6 +220,11 @@ export default {
   name: 'ParkingCell',
   data () {
     return {
+      system:'',
+      jj:'',
+      resh:0,
+      widths:'',
+      type:'',
       loadP: '89,434',
       dataMap: {},
       stage: null,
@@ -195,15 +260,42 @@ export default {
       ends:'',
       color:'',
       texts:'',
-      storey:'B3层'
+      storey:'B3层',
+      show:false,
+      hh:0,
+      sj:0,
+      many:0,
     }
   },
   created(){
       let that = this
       that.starts = that.$route.query.start
       that.ends = that.$route.query.end
+      var u = navigator.userAgent;
+
+var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端
+
+var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+
+if(isAndroid){
+
+// alert("android")
+that.system = 1
+
+}
+
+if(isiOS){
+
+// alert("ios")
+that.system = 2
+
+}
   },
   methods: {
+    toScale () {
+      this.group.scale({x: this.isPer, y: this.isPer})
+      this.layer.draw()
+    },
     //点击起点
     startTap(){
       let that = this
@@ -225,7 +317,8 @@ export default {
     },
     // 地图放大事件
     toBig () {
-      let value = -(0 - this.isPer - 0.05)
+      this.many = 1
+      let value = -(0 - this.isPer - 0.03)
       // alert(IDBCursorWithValue)
       if (value > 0 && value <= 2.4) {
         this.scale(value)
@@ -234,17 +327,57 @@ export default {
     },
     // 地图缩小事件
     toSmall () {
-      let value = this.isPer - 0.05
-      if (value > 0 && value >= 0.4) {
+       this.many = 2
+      let value = this.isPer - 0.03
+      if (value > 0 && value >= this.widths-0.04) {
         this.scale(value)
         this.isPer = value
       }
     },
     // 地图调用的放大或缩小事件（只需传参调用即可）
     scale (per) {
+      // console.log(this.many)
       this.isPer = per
       this.group.scale({x: per, y: per})
+      if(this.many == 1){
+        // console.log(this.dataMap.width)
+        // console.log('变大')
+        if(this.dataMap.width <= 80){
+            this.group.x(this.hh-=10)
+           this.group.y(this.sj-=10)
+        }else if(this.dataMap.width <= 120){
+          this.group.x(this.hh-=15)
+           this.group.y(this.sj-=15)
+        }else{
+          this.group.x(this.hh-=20)
+           this.group.y(this.sj-=20)
+        }
+      }else if(this.many == 2){
+        // console.log('缩小')
+           if(this.dataMap.width <= 80){
+            this.group.x(this.hh+=10)
+           this.group.y(this.sj+=10)
+        }else if(this.dataMap.width <= 120){
+          this.group.x(this.hh+=15)
+           this.group.y(this.sj+=15)
+        }else{
+           this.group.x(this.hh+=20)
+           this.group.y(this.sj+=20)
+        }
+      }
+      // console.log(this.hh)
+      // console.log(this.sj)
       this.layer.draw()
+    },
+    scales(){
+      let that = this
+      if(that.system == 1){
+        // alert("android")
+          this.$router.push('/emptyPage')
+      }else{
+        // alert("ios")
+          window.location.reload();
+      }
     },
     getDistance (p1, p2) {
       var x = p2.pageX - p1.pageX
@@ -332,6 +465,10 @@ export default {
     },
     initMap (selectedNo, direction) {
       let that = this
+      if(that.resh != 0){
+        return
+      }
+      that.resh = 1
       console.log('初始化11111111')
       this.stage = createStage('container')
       /**
@@ -346,24 +483,40 @@ export default {
        * 绘制路线
        * */
       console.log('开始绘制路线')
+      that.show = true
       try {
+        console.log(this.loadParams)
         getLoad(this.loadParams, res => {
+          console.log(res)
           if (res && res.code === 200) {
             var lines = res.data
-            this.group.add(createLoadLine(lines, this.isPer))
-            var img = new Image();
+            // if(that.type == 0){
+            //    console.log('高亮显示1111111111111')
+            // }else{
+              console.log(this.isPer)
+              this.jj = this.isPer
+              if(this.type == 0){
+                    var img = new Image();
+            img.src = require('@/assets/red.png');
+            console.log('不规划路线222222222222222')
+              }else{
+                  this.group.add(createLoadLine(lines, this.isPer))
+                    var img = new Image();
             img.src = require('@/assets/qidian@2x.png');
+            console.log('规划路线222222222222222')
+              }
+              
     //5.图片加载完后
     // img.onload = function () {
-        var kImage = new Konva.Image({
+          var kImage = new Konva.Image({
             image:img,
             x:(res.data[0].x)*10-20,
             y:(res.data[0].y)*10-65,
             width:40,
             height:66,
             //偏移
-        //     offsetX:img.width * 0.5,
-        //     offsetY:img.height * 0.5,
+            // offsetX:img.width * 0.5,
+            // offsetY:img.height * 0.5,
         //     // offset的设置是使得围绕中心旋转
         //  offset:{
         //         x: img.width/2,
@@ -376,13 +529,17 @@ export default {
             imgs.src = require('@/assets/huihuakaung@2x.png');
     //5.图片加载完后
     // img.onload = function () {
-        var kImages = new Konva.Image({
+      if(this.type == 0){
+
+      }else{
+          var kImages = new Konva.Image({
             image:imgs,
             x:(res.data[res.data.length - 1].x)*10-90,
             y:(res.data[res.data.length - 1].y)*10-72,
             width:180,
             height:72,
         })
+      }
                let ss = Number(that.end)
                let seats = ''
                if(ss >= 0){
@@ -404,9 +561,33 @@ export default {
         //添加到组
         setTimeout(res => {
                  that.group.add(kImage)
+                    //6.开启动画
+
+        //6.1 旋转
+        //每秒转60度
+        // var rotateAnglePerSecond = 90;
+        // var anim = new Konva.Animation(function (frame) {
+        //     //上一帧到当前帧的时间差 ms -->s
+        //     var timeDiff = frame.timeDiff /1000;//距离上一帧的时间差
+        //     //一帧转多少度
+        //     var rotateAngle = timeDiff * rotateAnglePerSecond;
+        //     //旋转
+        //     kImage.rotate(rotateAngle);
+        // }, this.layer);
+
+
+        // //开启动画
+        // anim.start();
+                 if(this.type == 0){
+
+      }else{
         that.group.add(kImages)
         that.group.add(text)
+      }
         that.layer.draw()
+        setTimeout(res => {
+            that.resh = 0
+        },1000)
         },200)
           }
         })
@@ -416,8 +597,11 @@ export default {
       /**
        * 根据当前模型按比例缩小地图
        * */
+      console.log(this.dataMap.width,'uuuuuuuuuuuuuuuuuuuu')
       let width = this.stage.width() / (this.dataMap.width * this.dataMap.unit) + (this.dataMap.width <= 80 ? 0.2 : this.dataMap.width <= 120 ? 0.1 : 0)
       let height = this.group.height() / (this.dataMap.height * this.dataMap.unit) + (this.dataMap.width <= 80 ? 0.2 : this.dataMap.width <= 120 ? 0.1 : 0)
+      // console.log(width)
+      that.widths = width
       // console.log(width.toFixed(2))
       if (height > width && height < 1) {
         this.scale(height.toFixed(2))
@@ -429,9 +613,11 @@ export default {
       let moveHeight = (this.stage.height() - this.group.height() * width) / 4
       this.group.x(-(this.min*(width.toFixed(2)))+7)
       this.group.y(moveHeight/2)
+      this.hh = (-(this.min*(width.toFixed(2)))+7)
+      this.sj = moveHeight/2
       this.x = -(this.min*(width.toFixed(2)))+7
       this.y = moveHeight/2
-      // alert('8888888888888888')
+      // alert(moveHeight/2)
       this.touchListen()
     },
     /**
@@ -439,14 +625,20 @@ export default {
      * 绘制车场的车位及其他建筑物
      **/
     drawElement (selectedNo, direction) {
-      let that = this
       let border = this.dataMap.border
-      this.group.add(createBorder(border))
+      if(Array.isArray(border)) {
+        console.log(border,'我瑟吉欧i')
+        border.forEach(elements => {                
+          this.group.add(createBorder(elements))
+        })
+      }else{
+        this.group.add(createBorder(border))
+      }  
+      
       let elements = this.dataMap.parking
       let parkingGroup
       if (elements && elements !== null) {
         elements.forEach(ele => {
-          
           if (ele.parking.value === selectedNo) {
             ele.parking.fill = '#f66913'
             parkingGroup = createParking(ele)
@@ -456,6 +648,7 @@ export default {
             this.loadParams.endPoint = [parkingGroup.x() + parkingGroup.children[1].x(), parkingGroup.y() + parkingGroup.children[1].y()]
             this.loadParams.endValue = parkingGroup.children[1].text()
           } else {
+            // console.log('666666666')
             parkingGroup = createParking(ele)
           }
           parkingGroup.on('tap', res => {
@@ -469,6 +662,7 @@ export default {
         let elementGroup
         es.forEach(ele => {
           if (ele && ele !== null) {
+            console.info(ele)
             if (ele.element[1].text === '入口' && direction === '1') {
               elementGroup = createElement(ele)
               createStart(ele.element[1].x + this.group.x() - 5, ele.element[1].y + this.group.y() + 10, this.group)
@@ -479,6 +673,7 @@ export default {
               if (this.loadP === point) {
                 createStart(ele.element[1].x + this.group.x() + 10, ele.element[1].y + this.group.y() - 15, this.group)
                 elementGroup = createElement(ele)
+                console.log(elementGroup)
                 this.loadParams.startPoint = [elementGroup.x() + elementGroup.children[1].x(), elementGroup.y() + elementGroup.children[1].y()]
                 this.loadParams.startValue = elementGroup.children[1].text()
               } else {
@@ -555,10 +750,12 @@ export default {
     let selectedNo = this.$route.query.plateNo;
     let direction = this.$route.query.direction;
     let parkId = this.$route.query.id;
+    this.type = this.$route.query.type;
     if(!parkId){
     	parkId = 62;
     }
     this.loadParams.mapId = parkId;
+    console.log(this.starts,this.ends)
     this.loadParams.startValue = this.ends;
     this.loadParams.endValue = this.starts;
     // this.storey = this.$route.query.storey
@@ -601,9 +798,14 @@ export default {
     // this.storey = this.$route.query.storey
     this.starte = this.$route.query.start
     this.end = this.$route.query.end
+    // this.$route.query.type = 2
+    this.type = this.$route.query.type
     console.info(this.loadParams);
     this.dataMap = getMapData(parkId, res => {
+      console.log(res)
       if (res && res.code === 200) {
+        console.log(res.data.mapData.border.length)
+        if(res.data.mapData.border.length == undefined){
              let min = res.data.mapData.border.points[0]
             for( let i = 0; i < res.data.mapData.border.points.length; i++){
                   if(res.data.mapData.border.points[i] < min){
@@ -613,6 +815,17 @@ export default {
         this.min = min
         this.dataMap = res.data.mapData
         this.initMap(selectedNo, direction)
+        }else{
+           let min = res.data.mapData.border[0].element.points[0]
+            for( let i = 0; i < res.data.mapData.border[0].element.points.length; i++){
+                  if(res.data.mapData.border[0].element.points[i] < min){
+                      min = res.data.mapData.border[0].element.points[i]
+                  }
+            }
+        this.min = min
+        this.dataMap = res.data.mapData
+        this.initMap(selectedNo, direction)
+        }
       }
     })
   }
